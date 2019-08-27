@@ -3,7 +3,7 @@ package logic
 import (
 	"context"
 
-	"github.com/Terry-Mao/goim/internal/logic/model"
+	"github.com/blastbao/goim/internal/logic/model"
 
 	log "github.com/golang/glog"
 )

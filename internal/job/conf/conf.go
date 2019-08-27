@@ -7,7 +7,7 @@ import (
 
 	"github.com/bilibili/discovery/naming"
 	"github.com/BurntSushi/toml"
-	xtime "github.com/Terry-Mao/goim/pkg/time"
+	xtime "github.com/blastbao/goim/pkg/time"
 )
 
 var (

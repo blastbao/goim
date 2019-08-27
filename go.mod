@@ -1,4 +1,4 @@
-module github.com/Terry-Mao/goim
+module github.com/blastbao/goim
 
 require (
 	github.com/BurntSushi/toml v0.3.1

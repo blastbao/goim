@@ -4,7 +4,7 @@ import (
 	"context"
 	"strconv"
 
-	pb "github.com/Terry-Mao/goim/api/logic/grpc"
+	pb "github.com/blastbao/goim/api/logic/grpc"
 	"github.com/gogo/protobuf/proto"
 	log "github.com/golang/glog"
 	sarama "gopkg.in/Shopify/sarama.v1"

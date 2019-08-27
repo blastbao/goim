@@ -1,6 +1,6 @@
 goim v2.0
 ==============
-`Terry-Mao/goim` 是一个支持集群的im及实时推送服务。
+`blastbao/goim` 是一个支持集群的im及实时推送服务。
 
 ---------------------------------------
   * [特性](#特性)
@@ -57,8 +57,8 @@ $ source /etc/profile
 1.下载goim及依赖包
 ```sh
 $ yum install hg
-$ go get -u github.com/Terry-Mao/goim
-$ mv $GOPATH/src/github.com/Terry-Mao/goim $GOPATH/src/goim
+$ go get -u github.com/blastbao/goim
+$ mv $GOPATH/src/github.com/blastbao/goim $GOPATH/src/goim
 $ cd $GOPATH/src/goim
 $ go get ./...
 ```
@@ -104,7 +104,7 @@ TODO
 
 ## 例子
 
-Websocket: [Websocket Client Demo](https://github.com/Terry-Mao/goim/tree/master/examples/javascript)
+Websocket: [Websocket Client Demo](https://github.com/blastbao/goim/tree/master/examples/javascript)
 
 Android: [Android](https://github.com/roamdy/goim-sdk)
 

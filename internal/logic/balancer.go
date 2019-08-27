@@ -9,7 +9,7 @@ import (
 	"sync"
 
 	"github.com/bilibili/discovery/naming"
-	"github.com/Terry-Mao/goim/internal/logic/model"
+	"github.com/blastbao/goim/internal/logic/model"
 	log "github.com/golang/glog"
 )
 

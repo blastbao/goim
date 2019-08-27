@@ -7,8 +7,8 @@ import (
 	"syscall"
 
 	"github.com/bilibili/discovery/naming"
-	"github.com/Terry-Mao/goim/internal/job"
-	"github.com/Terry-Mao/goim/internal/job/conf"
+	"github.com/blastbao/goim/internal/job"
+	"github.com/blastbao/goim/internal/job/conf"
 
 	resolver "github.com/bilibili/discovery/naming/grpc"
 	log "github.com/golang/glog"

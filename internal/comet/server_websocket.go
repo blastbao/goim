@@ -8,11 +8,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Terry-Mao/goim/api/comet/grpc"
-	"github.com/Terry-Mao/goim/internal/comet/conf"
-	"github.com/Terry-Mao/goim/pkg/bytes"
-	xtime "github.com/Terry-Mao/goim/pkg/time"
-	"github.com/Terry-Mao/goim/pkg/websocket"
+	"github.com/blastbao/goim/api/comet/grpc"
+	"github.com/blastbao/goim/internal/comet/conf"
+	"github.com/blastbao/goim/pkg/bytes"
+	xtime "github.com/blastbao/goim/pkg/time"
+	"github.com/blastbao/goim/pkg/websocket"
 	log "github.com/golang/glog"
 )
 

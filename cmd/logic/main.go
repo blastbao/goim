@@ -11,12 +11,12 @@ import (
 
 	"github.com/bilibili/discovery/naming"
 	resolver "github.com/bilibili/discovery/naming/grpc"
-	"github.com/Terry-Mao/goim/internal/logic"
-	"github.com/Terry-Mao/goim/internal/logic/conf"
-	"github.com/Terry-Mao/goim/internal/logic/grpc"
-	"github.com/Terry-Mao/goim/internal/logic/http"
-	"github.com/Terry-Mao/goim/internal/logic/model"
-	"github.com/Terry-Mao/goim/pkg/ip"
+	"github.com/blastbao/goim/internal/logic"
+	"github.com/blastbao/goim/internal/logic/conf"
+	"github.com/blastbao/goim/internal/logic/grpc"
+	"github.com/blastbao/goim/internal/logic/http"
+	"github.com/blastbao/goim/internal/logic/model"
+	"github.com/blastbao/goim/pkg/ip"
 	log "github.com/golang/glog"
 )
 
