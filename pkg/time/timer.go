@@ -32,6 +32,8 @@ func (td *TimerData) ExpireString() string {
 }
 
 // Timer timer.
+
+// 最小堆，在堆得开头是最先超时的 time
 type Timer struct {
 	lock   sync.Mutex
 	free   *TimerData

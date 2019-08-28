@@ -9,6 +9,11 @@ import (
 
 var whitelist *Whitelist
 
+
+
+// 对于白名单用户，有更详细的日志打印。
+
+
 // Whitelist .
 type Whitelist struct {
 	log  *log.Logger

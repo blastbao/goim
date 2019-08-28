@@ -14,19 +14,24 @@ import (
 )
 
 // Connect connected a connection.
+// 告知 logic service 有人想要进入某个房间。
 func (s *Server) Connect(c context.Context, p *model.Proto, cookie string) (mid int64, key, rid string, accepts []int32, heartbeat time.Duration, err error) {
+
 	reply, err := s.rpcClient.Connect(c, &logic.ConnectReq{
-		Server: s.serverID,
-		Cookie: cookie,
-		Token:  p.Body,
+		Server: s.serverID, // 服务 ID
+		Cookie: cookie, 	//
+		Token:  p.Body,		//
 	})
+
 	if err != nil {
 		return
 	}
+
 	return reply.Mid, reply.Key, reply.RoomID, reply.Accepts, time.Duration(reply.Heartbeat), nil
 }
 
 // Disconnect disconnected a connection.
+// client 连接中断，告知 logic service 需清理此人的状态信息。
 func (s *Server) Disconnect(c context.Context, mid int64, key string) (err error) {
 	_, err = s.rpcClient.Disconnect(context.Background(), &logic.DisconnectReq{
 		Server: s.serverID,
@@ -37,6 +42,7 @@ func (s *Server) Disconnect(c context.Context, mid int64, key string) (err error
 }
 
 // Heartbeat heartbeat a connection session.
+// 告知 logic service 要刷新某人的在线状态。
 func (s *Server) Heartbeat(ctx context.Context, mid int64, key string) (err error) {
 	_, err = s.rpcClient.Heartbeat(ctx, &logic.HeartbeatReq{
 		Server: s.serverID,
@@ -65,18 +71,23 @@ func (s *Server) Receive(ctx context.Context, mid int64, p *model.Proto) (err er
 }
 
 // Operate operate.
+// 处理 Proto 相关逻辑。
 func (s *Server) Operate(ctx context.Context, p *model.Proto, ch *Channel, b *Bucket) error {
 	switch p.Op {
+
+	// user 更换房间
 	case model.OpChangeRoom:
 		if err := b.ChangeRoom(string(p.Body), ch); err != nil {
 			log.Errorf("b.ChangeRoom(%s) error(%v)", p.Body, err)
 		}
 		p.Op = model.OpChangeRoomReply
+	// user 新增关注房间列表 ops
 	case model.OpSub:
 		if ops, err := strings.SplitInt32s(string(p.Body), ","); err == nil {
 			ch.Watch(ops...)
 		}
 		p.Op = model.OpSubReply
+	// user 移除关注房间列表 ops
 	case model.OpUnsub:
 		if ops, err := strings.SplitInt32s(string(p.Body), ","); err == nil {
 			ch.UnWatch(ops...)

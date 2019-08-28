@@ -8,18 +8,21 @@ import "github.com/blastbao/goim/api/comet/grpc/api.proto";
 import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 
 message PushMsg {
+
+    // 消息类型
     enum Type {
-        PUSH = 0;
-        ROOM = 1;
-        BROADCAST = 2;
+        PUSH = 0;       // 单用户
+        ROOM = 1;       // 单房间
+        BROADCAST = 2;  // 全局广播
     }
-    Type type = 1;
-    int32 operation = 2;
-    int32 speed = 3;
-    string server = 4;
-    string room = 5;
-    repeated string keys = 6;
-    bytes msg = 7;
+
+    Type type = 1;              // 消息类型
+    int32 operation = 2;        // 操作类型？房间ID？
+    int32 speed = 3;            // 限频参数
+    string server = 4;          // 服务器 IP
+    string room = 5;            // 房间 ID
+    repeated string keys = 6;   // 用户 key 列表
+    bytes msg = 7;              // 消息体
 }
 
 message CloseReply {

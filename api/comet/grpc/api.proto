@@ -9,6 +9,8 @@ import "github.com/gogo/protobuf/gogoproto/gogo.proto";
  * v1.0.0
  * protocol
  */
+
+// Proto 消息结构体 : 协议版本号、消息类型、消息序号、消息体。
 message Proto {
     int32 ver = 1 [(gogoproto.jsontag) = "ver"];
     int32 op = 2 [(gogoproto.jsontag) = "op"];

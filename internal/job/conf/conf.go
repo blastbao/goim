@@ -61,16 +61,27 @@ type Config struct {
 	Room      *Room
 }
 
+
 // Room is room config.
+// 房间消息聚合
 type Room struct {
+
+	// 最大缓存的信息量，超过就推送给 comet，默认为 20 条。
 	Batch  int
+
+	// 缓存的最大时间，超过就推送给 comet，默认为 1 秒。值太小会增加推送频率，太大会增加延迟。
 	Signal xtime.Duration
+
+	// 消息聚合 goroutine 等待多久都沒收到消息就自动 close
 	Idle   xtime.Duration
 }
 
+
 // Comet is comet config.
 type Comet struct {
+	//
 	RoutineChan int
+	//
 	RoutineSize int
 }
 
