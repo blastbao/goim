@@ -25,7 +25,7 @@ type Job struct {
 	// 线上正在运行哪些 Comet server (不同host)
 	cometServers map[string]*Comet
 
-	// 房间信息的聚合存储
+	// 房间信息的统一存储
 	rooms      map[string]*Room
 
 	roomsMutex sync.RWMutex
@@ -41,7 +41,7 @@ func New(c *conf.Config) *Job {
 		rooms:    make(map[string]*Room),
 	}
 
-	//
+	// 服务发现，动态更新 cometServers 列表 。
 	j.watchComet(c.Discovery)
 
 	return j
@@ -99,7 +99,6 @@ func (j *Job) Consume() {
 				log.Errorf("j.push(%v) error(%v)", pushMsg, err)
 			}
 			log.Infof("consume: %s/%d/%d\t%s\t%+v", msg.Topic, msg.Partition, msg.Offset, msg.Key, pushMsg)
-
 
 		}
 	}

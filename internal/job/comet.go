@@ -64,11 +64,11 @@ type Comet struct {
 	// Comet grpc client
 	client        comet.CometClient
 
-	// 推送单人消息給 Comet 的 chan
+	// 推送单人消息給 Comet 的 chan，每个 process 协程负责一个 chan，发送时可以选择任意一个 chan，默认是轮训选择。
 	pushChan      []chan *comet.PushMsgReq
-	// 推送单房间广播消息給 Comet 的 chan
+	// 推送单房间广播消息给 Comet 的 chan，每个 process 协程负责一个 chan，发送时可以选择任意一个 chan，默认是轮训选择。
 	roomChan      []chan *comet.BroadcastRoomReq
-	// 推送多房间广播消息給 Comet 的 chan，全局只有一个。
+	// 推送多房间广播消息给 Comet 的 chan，全局只有一个，多个 process 协程争抢消费，抢到则负责发送。
 	broadcastChan chan *comet.BroadcastReq
 
 	// 负责将单人消息推送至 Comet 的 goroutine 数目
@@ -113,7 +113,7 @@ func NewComet(in *naming.Instance, c *conf.Comet) (*Comet, error) {
 	}
 	cmt.ctx, cmt.cancel = context.WithCancel(context.Background())
 
-	// 创建 c.RoutineSize 个 goroutine 执行，并行的发送消息给  Comet 。
+	// 创建 c.RoutineSize 个 goroutine 执行，并行的发送消息给 Comet 。
 	for i := 0; i < c.RoutineSize; i++ {
 
 		cmt.pushChan[i] = make(chan *comet.PushMsgReq, c.RoutineChan)			// 创建单人消息推送管道

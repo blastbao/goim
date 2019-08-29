@@ -35,7 +35,7 @@ type Channel struct {
 	IP       string 			// user ip
 
 
-	watchOps map[int32]struct{} // user 只接收哪个房间 roomid 发來的信息
+	watchOps map[int32]struct{} // user 关注的操作 ops
 
 	mutex    sync.RWMutex 		// 读写锁
 }
@@ -50,7 +50,7 @@ func NewChannel(cli, svr int) *Channel {
 }
 
 // Watch watch a operation.
-// 设置 user 关注的房间 IDs
+// 设置 user 关注的操作 ops
 func (c *Channel) Watch(accepts ...int32) {
 	c.mutex.Lock()
 	for _, op := range accepts {
@@ -60,7 +60,7 @@ func (c *Channel) Watch(accepts ...int32) {
 }
 
 // UnWatch unwatch an operation
-// 移除 user 关注房间 IDs
+// 移除 user 关注操作 ops
 func (c *Channel) UnWatch(accepts ...int32) {
 	c.mutex.Lock()
 	for _, op := range accepts {
@@ -70,7 +70,7 @@ func (c *Channel) UnWatch(accepts ...int32) {
 }
 
 // NeedPush verify if in watch.
-// 判断 user 能否接收来自房间 op 的信息
+// 判断 user 是否正在关注操作 op
 func (c *Channel) NeedPush(op int32) bool {
 	c.mutex.RLock()
 	if _, ok := c.watchOps[op]; ok {

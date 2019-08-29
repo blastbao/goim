@@ -75,7 +75,7 @@ func (s *server) PushMsg(ctx context.Context, req *pb.PushMsgReq) (reply *pb.Pus
 		// 根据 user 找到他归属的 bucket，进而在该 Bucket 中找出 user 对应的 Channel
 		if channel := s.srv.Bucket(key).Channel(key); channel != nil {
 
-			// 检查当前 user 是否关注发往房间 req.ProtoOp 的消息
+			// 检查当前 user 是否关注 req.ProtoOp 操作类型
 			if !channel.NeedPush(req.ProtoOp) {
 				continue
 			}
@@ -102,7 +102,7 @@ func (s *server) Broadcast(ctx context.Context, req *pb.BroadcastReq) (*pb.Broad
 	go func() {
 		// 遍历所有的 buckets，执行全局广播。
 		for _, bucket := range s.srv.Buckets() {
-			// 把消息 req.Proto 推送到对本 Bucket 内所有关注房间 req.ProtoOp 的 user channels 中。
+			// 把消息 req.Proto 推送到对本 Bucket 内所有关注 req.ProtoOp 操作的 user channels 中。
 			bucket.Broadcast(req.GetProto(), req.ProtoOp)
 			// 广播限频参数
 			if req.Speed > 0 {
