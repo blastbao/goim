@@ -100,8 +100,12 @@ type Node struct {
 	TCPPort       int
 	WSPort        int
 	WSSPort       int
+
+	// 心跳周期，连接没有在心跳周期内回应，sever 会 close 连接，心跳骤起 = Heartbeat * HeartbeatMax 。
 	HeartbeatMax  int
 	Heartbeat     xtime.Duration
+
+	// 区域权重 。
 	RegionWeight  float64
 }
 

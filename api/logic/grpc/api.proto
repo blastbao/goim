@@ -17,7 +17,7 @@ message PushMsg {
     }
 
     Type type = 1;              // 消息类型
-    int32 operation = 2;        // 操作类型？房间ID？
+    int32 operation = 2;        // 操作类型
     int32 speed = 3;            // 限频参数
     string server = 4;          // 服务器 IP
     string room = 5;            // 房间 ID

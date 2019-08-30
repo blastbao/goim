@@ -10,6 +10,26 @@ import (
 	sarama "gopkg.in/Shopify/sarama.v1"
 )
 
+// 	PB 定义:
+//
+// 	message PushMsg {
+//
+//		// 消息类型
+//		enum Type {
+//			PUSH = 0;       // 单用户
+//			ROOM = 1;       // 单房间
+//			BROADCAST = 2;  // 全局广播
+//		}
+//
+//		Type type = 1;              // 消息类型
+//		int32 operation = 2;        // 操作类型
+//		int32 speed = 3;            // 限频参数
+//		string server = 4;          // 服务器 IP
+//		string room = 5;            // 房间 ID
+//		repeated string keys = 6;   // 用户 key 列表
+//		bytes msg = 7;              // 消息体
+// 	}
+
 // PushMsg push a message to databus.
 func (d *Dao) PushMsg(c context.Context, op int32, server string, keys []string, msg []byte) (err error) {
 	pushMsg := &pb.PushMsg{
@@ -36,16 +56,20 @@ func (d *Dao) PushMsg(c context.Context, op int32, server string, keys []string,
 
 // BroadcastRoomMsg push a message to databus.
 func (d *Dao) BroadcastRoomMsg(c context.Context, op int32, room string, msg []byte) (err error) {
+
+
 	pushMsg := &pb.PushMsg{
 		Type:      pb.PushMsg_ROOM,
 		Operation: op,
 		Room:      room,
 		Msg:       msg,
 	}
+
 	b, err := proto.Marshal(pushMsg)
 	if err != nil {
 		return
 	}
+
 	m := &sarama.ProducerMessage{
 		Key:   sarama.StringEncoder(room),
 		Topic: d.c.Kafka.Topic,

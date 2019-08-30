@@ -20,20 +20,34 @@ const (
 // Logic struct
 type Logic struct {
 	c   *conf.Config
+
+	// 服务发现 client
 	dis *naming.Discovery
+
+	// kafka and redis Dao
 	dao *dao.Dao
-	// online
+
+	// 在线 IP 数 (PV)
 	totalIPs   int64
+	// 在线 User 数 (UV)
 	totalConns int64
+
+	// 房间在线人数，key 是 roomID
 	roomCount  map[string]int32
-	// load balancer
+
+
+	// 负载均衡器
 	nodes        []*naming.Instance
 	loadBalancer *LoadBalancer
 	regions      map[string]string // province -> region
 }
 
+
+
 // New init
 func New(c *conf.Config) (l *Logic) {
+
+	//
 	l = &Logic{
 		c:            c,
 		dao:          dao.New(c),
@@ -41,12 +55,19 @@ func New(c *conf.Config) (l *Logic) {
 		loadBalancer: NewLoadBalancer(),
 		regions:      make(map[string]string),
 	}
+
+
 	l.initRegions()
 	l.initNodes()
 	_ = l.loadOnline()
+
+
+
 	go l.onlineproc()
 	return l
 }
+
+
 
 // Ping ping resources is ok.
 func (l *Logic) Ping(c context.Context) (err error) {
@@ -138,10 +159,15 @@ func (l *Logic) onlineproc() {
 	}
 }
 
+
+// 从 redis 取出当前各房间人数，更新到 l.roomCount 的 map 中。
 func (l *Logic) loadOnline() (err error) {
+
 	var (
 		roomCount = make(map[string]int32)
 	)
+
+	//
 	for _, server := range l.nodes {
 		var online *model.Online
 		online, err = l.dao.ServerOnline(context.Background(), server.Hostname)
@@ -156,6 +182,8 @@ func (l *Logic) loadOnline() (err error) {
 			roomCount[roomID] += count
 		}
 	}
+
 	l.roomCount = roomCount
+
 	return
 }

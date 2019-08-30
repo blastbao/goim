@@ -12,33 +12,46 @@ import (
 )
 
 // Connect connected a conn.
+// 把 user 的连接信息记录到 Redis 里。
 func (l *Logic) Connect(c context.Context, server, cookie string, token []byte) (mid int64, key, roomID string, accepts []int32, hb int64, err error) {
+
+	// 1. 把 token 解析成 client params
 	var params struct {
-		Mid      int64   `json:"mid"`
-		Key      string  `json:"key"`
-		RoomID   string  `json:"room_id"`
-		Platform string  `json:"platform"`
-		Accepts  []int32 `json:"accepts"`
+		Mid      int64   `json:"mid"`		// client id
+		Key      string  `json:"key"`		// client key
+		RoomID   string  `json:"room_id"` 	// client 要进入的 room
+		Platform string  `json:"platform"` 	// 设备平台
+		Accepts  []int32 `json:"accepts"` 	// user 接收的 operation
 	}
+
 	if err = json.Unmarshal(token, &params); err != nil {
 		log.Errorf("json.Unmarshal(%s) error(%v)", token, err)
 		return
 	}
+
+	// 2. 设置返回参数
 	mid = params.Mid
 	roomID = params.RoomID
 	accepts = params.Accepts
+	// 告知 comet 连接多久沒心跳就直接 close
 	hb = int64(l.c.Node.Heartbeat) * int64(l.c.Node.HeartbeatMax)
+
 	if key = params.Key; key == "" {
-		key = uuid.New().String()
+		key = uuid.New().String() // 随机生成 uuid
 	}
+
+	// 3. 把 user 信息 client_id，client_key，comet_server_id 保存到 redis。
 	if err = l.dao.AddMapping(c, mid, key, server); err != nil {
 		log.Errorf("l.dao.AddMapping(%d,%s,%s) error(%v)", mid, key, server, err)
 	}
+
 	log.Infof("conn connected key:%s server:%s mid:%d token:%s", key, server, mid, token)
 	return
 }
 
+
 // Disconnect disconnect a conn.
+// 从 Redis 中删除 user 的连接信息。
 func (l *Logic) Disconnect(c context.Context, mid int64, key, server string) (has bool, err error) {
 	if has, err = l.dao.DelMapping(c, mid, key, server); err != nil {
 		log.Errorf("l.dao.DelMapping(%d,%s) error(%v)", mid, key, server)
@@ -49,12 +62,15 @@ func (l *Logic) Disconnect(c context.Context, mid int64, key, server string) (ha
 }
 
 // Heartbeat heartbeat a conn.
+// 更新某个 user 的 redis 过期时间。
 func (l *Logic) Heartbeat(c context.Context, mid int64, key, server string) (err error) {
 	has, err := l.dao.ExpireMapping(c, mid, key)
 	if err != nil {
 		log.Errorf("l.dao.ExpireMapping(%d,%s,%s) error(%v)", mid, key, server, err)
 		return
 	}
+
+	// 不存在 or 没更新成功 就直接覆盖。
 	if !has {
 		if err = l.dao.AddMapping(c, mid, key, server); err != nil {
 			log.Errorf("l.dao.AddMapping(%d,%s,%s) error(%v)", mid, key, server, err)
@@ -67,14 +83,17 @@ func (l *Logic) Heartbeat(c context.Context, mid int64, key, server string) (err
 
 // RenewOnline renew a server online.
 func (l *Logic) RenewOnline(c context.Context, server string, roomCount map[string]int32) (map[string]int32, error) {
+
 	online := &model.Online{
 		Server:    server,
 		RoomCount: roomCount,
 		Updated:   time.Now().Unix(),
 	}
+
 	if err := l.dao.AddServerOnline(context.Background(), server, online); err != nil {
 		return nil, err
 	}
+
 	return l.roomCount, nil
 }
 

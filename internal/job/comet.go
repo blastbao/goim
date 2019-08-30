@@ -76,7 +76,6 @@ type Comet struct {
 	// 负责将单房间消息推送至 Comet 的 goroutine 数目
 	roomChanNum   uint64
 
-
 	// 开多少 goroutine 来并发推送消息给 Comet
 	routineSize   uint64
 
@@ -157,7 +156,7 @@ func (c *Comet) Broadcast(arg *comet.BroadcastReq) (err error) {
 func (c *Comet) process(pushChan chan *comet.PushMsgReq, roomChan chan *comet.BroadcastRoomReq, broadcastChan chan *comet.BroadcastReq) {
 	for {
 
-		// 监听入参 pushChan、roomChan、broadcastChan 三个消息通道。
+		// 每个单独的 process 协程都要监听 pushChan、roomChan、broadcastChan 三个消息通道，其中 broadcastChan 是所有协程共享的。
 		select {
 
 		// 1. 多房间广播

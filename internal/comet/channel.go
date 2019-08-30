@@ -23,7 +23,6 @@ type Channel struct {
 	signal   chan *grpc.Proto   // 接收消息的 chan，通过此 chan 接收 Job service 递送过来的信号，dispatcher goroutine 会监听此信号并处理。
 
 
-
 	Writer   bufio.Writer       // 客户端连接 conn 的 写 封装
 	Reader   bufio.Reader       // 客户端连接 conn 的 读 封装
 

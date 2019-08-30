@@ -32,13 +32,19 @@ func New(c *conf.HTTPServer, l *logic.Logic) *Server {
 
 func (s *Server) initRouter() {
 	group := s.engine.Group("/goim")
+
+	// 消息推送接口
 	group.POST("/push/keys", s.pushKeys)
 	group.POST("/push/mids", s.pushMids)
 	group.POST("/push/room", s.pushRoom)
 	group.POST("/push/all", s.pushAll)
+
+	// 状态查询接口
 	group.GET("/online/top", s.onlineTop)
 	group.GET("/online/room", s.onlineRoom)
 	group.GET("/online/total", s.onlineTotal)
+
+	// 服务发现
 	group.GET("/nodes/weighted", s.nodesWeighted)
 	group.GET("/nodes/instances", s.nodesInstances)
 }

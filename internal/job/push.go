@@ -10,8 +10,6 @@ import (
 	log "github.com/golang/glog"
 )
 
-
-
 // 推送消息到 comet server
 func (j *Job) push(ctx context.Context, pushMsg *pb.PushMsg) (err error) {
 	switch pushMsg.Type {
@@ -29,6 +27,8 @@ func (j *Job) push(ctx context.Context, pushMsg *pb.PushMsg) (err error) {
 
 // pushKeys push a message to a batch of subkeys.
 // 发送单用户消息。
+//
+// 根据 serverID 确定 commet svr，然后把消息塞给到这个 comet svr 的 c.pushChan 管道中，交由对应的协程负责发送给 comet svr 。
 func (j *Job) pushKeys(operation int32, serverID string, subKeys []string, body []byte) (err error) {
 
 	buf := bytes.NewWriterSize(len(body) + 64)
@@ -50,6 +50,7 @@ func (j *Job) pushKeys(operation int32, serverID string, subKeys []string, body 
 	}
 
 	// 根据 serverID 确定 commet svr，然后把消息塞给他。
+	// 注意，因为使用了服务发现动态更新 j.cometServers 服务列表，如果 serverID 不能在列表中找到，可能是意外挂了，无法执行消息发送。
 	if c, ok := j.cometServers[serverID]; ok {
 		if err = c.Push(&args); err != nil {
 			log.Errorf("c.Push(%v) serverID:%s error(%v)", args, serverID, err)
@@ -63,7 +64,7 @@ func (j *Job) pushKeys(operation int32, serverID string, subKeys []string, body 
 // broadcast broadcast a message to all.
 // 发送全局广播消息。
 //
-// 具体的发送逻辑，是把消息塞到 comet.broadcastChan 管道中，comet 有协程负责真正的发送。
+// 具体的发送逻辑，是把消息塞到 comet.broadcastChan 管道中，有具体协程负责真正的发送给 comet svr。
 func (j *Job) broadcast(operation int32, body []byte, speed int32) (err error) {
 
 	buf := bytes.NewWriterSize(len(body) + 64)
@@ -113,6 +114,8 @@ func (j *Job) broadcastRoomRawBytes(roomID string, body []byte) (err error) {
 	}
 
 	// 取出当前活跃 cometSvrs 列表，对每个 cometSvr 进行消息推送。
+
+	// 【重要】注意，goim 没有保存 room 和 comet 的映射关系，所以这里只能广播给每个 comet ，交由它内部自己检查是否包含 room 房间并发送。
 	comets := j.cometServers
 	for serverID, c := range comets {
 		if err = c.BroadcastRoom(&args); err != nil {

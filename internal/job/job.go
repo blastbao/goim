@@ -70,6 +70,7 @@ func (j *Job) Close() error {
 }
 
 // Consume messages, watch signals
+// 【主逻辑】接收 kafka 的消息，执行消息发送。
 func (j *Job) Consume() {
 	for {
 		select {
@@ -103,7 +104,6 @@ func (j *Job) Consume() {
 		}
 	}
 }
-
 
 
 // 服务发现，更新 comet 列表。
