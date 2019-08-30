@@ -204,6 +204,8 @@ func (s *Server) ServeTCP(conn *net.TCPConn, rp, wp *bytes.Pool, tr *xtime.Timer
 		// 2. 调用 authTCP() 方法，从 conn 中读取用户鉴权信息写入到 p，然后调用 logicSvr 进行鉴权。
 		if ch.Mid, ch.Key, rid, accepts, hb, err = s.authTCP(ctx, rr, wr, p); err == nil {
 
+
+
 			// 3. 鉴权通过，保存用户登陆信息...
 			ch.Watch(accepts...)
 			b = s.Bucket(ch.Key)
@@ -553,7 +555,7 @@ func (s *Server) authTCP(ctx context.Context, rr *bufio.Reader, wr *bufio.Writer
 		}
 	}
 
-	// 2. 鉴权调用
+	// 2. 鉴权调用，实际上只是将用户信息注册到 redis 中。
 	if mid, key, rid, accepts, hb, err = s.Connect(ctx, p, ""); err != nil {
 		log.Errorf("authTCP.Connect(key:%v).err(%v)", key, err)
 		return

@@ -69,7 +69,6 @@ func (d *Dao) AddMapping(c context.Context, mid int64, key, server string) (err 
 		n += 2
 	}
 
-
 	// SET key_`user_key` `server`
 	if err = conn.Send("SET", keyKeyServer(key), server); err != nil {
 		log.Errorf("conn.Send(HSET %d,%s,%s) error(%v)", mid, server, key, err)
@@ -159,11 +158,6 @@ func (d *Dao) DelMapping(c context.Context, mid int64, key, server string) (has 
 }
 
 
-
-
-
-
-
 // ServersByKeys get a server by key.
 //
 // 根据 use keys 查寻 Redis ，用 Mget 批量获取对应的 server names 。
@@ -226,72 +220,84 @@ func (d *Dao) KeysByMids(c context.Context, mids []int64) (ress map[string]strin
 	}
 
 	//
-
-
 	return
 }
 
 // AddServerOnline add a server online.
-
-
-// 以HSET方式儲存房間人數
-// HSET Key hashKey jsonBody
-// Key用server name
-// hashKey則是將room name以City Hash32做hash後得出一個數字，以這個數字當hashKey
-// 至於為什麼hashKey還要用City Hash32做hash就不知道
-
-
 //
-//
-//
-//
+// 更新 server 下的所有房间的在线用户数目。
 func (d *Dao) AddServerOnline(c context.Context, server string, online *model.Online) (err error) {
 
-
+	// roomsMap 对应的 Redis  HSET 存储结构:
+	// 	key = cityhash.CityHash32([]byte(roomID), uint32(len(roomID)))%64
+	// 	subKey = roomID
+	// 	value = online user count
+	//
+	// 可见在 roomsMap 存储结构中，对 roomID 进行了分组，根据 roomID 的哈希值分成了 64 组，目的可能是减少 redis key 的数目 ？？？
 	roomsMap := map[uint32]map[string]int32{}
 
+
+	// online.RoomCount = map[roomID][online user count]
 	for room, count := range online.RoomCount {
+
+		// 计算并取出 roomID 归属的分组 rMap
 		rMap := roomsMap[cityhash.CityHash32([]byte(room), uint32(len(room)))%64]
+
+		// 若 rMap 为空就新建一个非空分组塞到 roomsMap 中
 		if rMap == nil {
 			rMap = make(map[string]int32)
 			roomsMap[cityhash.CityHash32([]byte(room), uint32(len(room)))%64] = rMap
 		}
+
+		// 把 roomID => count 的映射保存到当前分组里
 		rMap[room] = count
 	}
 
-
+	// key = ol_`server`
 	key := keyServerOnline(server)
 
-
+	// 遍历 roomsMap 中的所有分组，以分组 hashKey 作为 subkey 塞到 key = ol_`server` 的 HSET 中。
 	for hashKey, value := range roomsMap {
+
+		//
 		err = d.addServerOnline(c, key, strconv.FormatInt(int64(hashKey), 10), &model.Online{RoomCount: value, Server: online.Server, Updated: online.Updated})
 		if err != nil {
 			return
 		}
+
+
 	}
 	return
 }
 
+// 以 room 分组的维度，以分组 hashKey 作为 subkey 塞到 key = ol_`server` 的 HSET 中。
+//
+// HSET key room_group_hashKey jsonBody
 
-// 以HSET方式儲存房間人數
-// HSET Key hashKey jsonBody
-// Key用server name
 func (d *Dao) addServerOnline(c context.Context, key string, hashKey string, online *model.Online) (err error) {
 	conn := d.redis.Get()
 	defer conn.Close()
+
+	// 用 json.Marshal() 得到 value
 	b, _ := json.Marshal(online)
+
+	// key = ol_`server`
+	// hashKey = cityhash.CityHash32([]byte(roomID), uint32(len(roomID)))%64
 	if err = conn.Send("HSET", key, hashKey, b); err != nil {
 		log.Errorf("conn.Send(SET %s,%s) error(%v)", key, hashKey, err)
 		return
 	}
+
 	if err = conn.Send("EXPIRE", key, d.redisExpire); err != nil {
 		log.Errorf("conn.Send(EXPIRE %s) error(%v)", key, err)
 		return
 	}
+
 	if err = conn.Flush(); err != nil {
 		log.Errorf("conn.Flush() error(%v)", err)
 		return
 	}
+
 	for i := 0; i < 2; i++ {
 		if _, err = conn.Receive(); err != nil {
 			log.Errorf("conn.Receive() error(%v)", err)
@@ -302,24 +308,40 @@ func (d *Dao) addServerOnline(c context.Context, key string, hashKey string, onl
 }
 
 // ServerOnline get a server online.
+
+// 根据 server name 取各房间总在线人数。
+
 func (d *Dao) ServerOnline(c context.Context, server string) (online *model.Online, err error) {
+
 	online = &model.Online{RoomCount: map[string]int32{}}
+
+	// 根据 server name 获取该 server 上各个房间的在线人数的存储 key，key => hashkey => JsonValue 。
 	key := keyServerOnline(server)
+
+	// 因为在存储时将 server 上的房间划分到 64 个分组中，每个分组对应 HSET 的一个 subKey，这里逐一取出个分组，然后进行数据汇总。
 	for i := 0; i < 64; i++ {
+
+		// 根据 key 和 hashKey 取出房间分组信息
 		ol, err := d.serverOnline(c, key, strconv.FormatInt(int64(i), 10))
+
 		if err == nil && ol != nil {
 			online.Server = ol.Server
 			if ol.Updated > online.Updated {
 				online.Updated = ol.Updated
 			}
+
+			// 遍历分组内的 `房间` 及其 `在线人数` ，并汇总到结果集合 online.RoomCount[] 中。
 			for room, count := range ol.RoomCount {
 				online.RoomCount[room] = count
 			}
 		}
 	}
+
 	return
 }
 
+
+// 根据 key 和 hashKey 取出房间分组信息
 func (d *Dao) serverOnline(c context.Context, key string, hashKey string) (online *model.Online, err error) {
 	conn := d.redis.Get()
 	defer conn.Close()

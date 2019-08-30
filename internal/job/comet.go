@@ -84,6 +84,10 @@ type Comet struct {
 }
 
 // NewComet new a comet.
+//
+// 每个 comet 对象会启动多个 goroutine，并发的将消息推送到本 comet svr 上。
+//
+//
 func NewComet(in *naming.Instance, c *conf.Comet) (*Comet, error) {
 	cmt := &Comet{
 		serverID:      in.Hostname,
@@ -93,7 +97,7 @@ func NewComet(in *naming.Instance, c *conf.Comet) (*Comet, error) {
 		routineSize:   uint64(c.RoutineSize),
 	}
 
-	// 找出 Comet server 的 addr
+	// 1. 找出 Comet server 的 addr
 	var grpcAddr string
 	for _, addrs := range in.Addrs {
 		u, err := url.Parse(addrs)
@@ -105,14 +109,14 @@ func NewComet(in *naming.Instance, c *conf.Comet) (*Comet, error) {
 		return nil, fmt.Errorf("invalid grpc address:%v", in.Addrs)
 	}
 
-	// 跟 Comet servers 建立 grpc 连接，得到 grpc client
+	// 2. 跟 Comet servers 建立 grpc 连接，得到 grpc client
 	var err error
 	if cmt.client, err = newCometClient(grpcAddr); err != nil {
 		return nil, err
 	}
 	cmt.ctx, cmt.cancel = context.WithCancel(context.Background())
 
-	// 创建 c.RoutineSize 个 goroutine 执行，并行的发送消息给 Comet 。
+	// 3. 创建 c.RoutineSize 个 goroutine ，并行的接收&发送消息给本 Comet，据说是为了避免锁的争用。
 	for i := 0; i < c.RoutineSize; i++ {
 
 		cmt.pushChan[i] = make(chan *comet.PushMsgReq, c.RoutineChan)			// 创建单人消息推送管道
@@ -150,7 +154,6 @@ func (c *Comet) Broadcast(arg *comet.BroadcastReq) (err error) {
 	c.broadcastChan <- arg
 	return
 }
-
 
 // 负责将消息推送给 comet server 的协程函数
 func (c *Comet) process(pushChan chan *comet.PushMsgReq, roomChan chan *comet.BroadcastRoomReq, broadcastChan chan *comet.BroadcastReq) {

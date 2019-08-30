@@ -55,6 +55,7 @@ func (s *server) Close(ctx context.Context, req *pb.CloseReq) (*pb.CloseReply, e
 }
 
 // Connect connect a conn.
+// 把 user 的连接信息记录到 Redis 里。
 func (s *server) Connect(ctx context.Context, req *pb.ConnectReq) (*pb.ConnectReply, error) {
 	mid, key, room, accepts, hb, err := s.srv.Connect(ctx, req.Server, req.Cookie, req.Token)
 	if err != nil {
@@ -64,6 +65,7 @@ func (s *server) Connect(ctx context.Context, req *pb.ConnectReq) (*pb.ConnectRe
 }
 
 // Disconnect disconnect a conn.
+// 从 Redis 中删除 user 的连接信息。
 func (s *server) Disconnect(ctx context.Context, req *pb.DisconnectReq) (*pb.DisconnectReply, error) {
 	has, err := s.srv.Disconnect(ctx, req.Mid, req.Key, req.Server)
 	if err != nil {
@@ -73,6 +75,7 @@ func (s *server) Disconnect(ctx context.Context, req *pb.DisconnectReq) (*pb.Dis
 }
 
 // Heartbeat beartbeat a conn.
+// 更新某个 user 的 redis 过期时间。
 func (s *server) Heartbeat(ctx context.Context, req *pb.HeartbeatReq) (*pb.HeartbeatReply, error) {
 	if err := s.srv.Heartbeat(ctx, req.Mid, req.Key, req.Server); err != nil {
 		return &pb.HeartbeatReply{}, err
@@ -81,6 +84,7 @@ func (s *server) Heartbeat(ctx context.Context, req *pb.HeartbeatReq) (*pb.Heart
 }
 
 // RenewOnline renew server online.
+// 更新 server 下的所有房间的在线用户数目。
 func (s *server) RenewOnline(ctx context.Context, req *pb.OnlineReq) (*pb.OnlineReply, error) {
 	allRoomCount, err := s.srv.RenewOnline(ctx, req.Server, req.RoomCount)
 	if err != nil {

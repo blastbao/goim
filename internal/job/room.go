@@ -26,8 +26,6 @@ var (
 
 // 【重要】Room 结构体仅仅是封装 `单房间广播消息` 的缓存和聚合发送的逻辑，起个这么抽象的名太容易混淆了。
 
-
-
 // Room room.
 type Room struct {
 	c     *conf.Room
@@ -106,7 +104,6 @@ func (r *Room) pushproc(batch int, sigTime time.Duration) {
 		}
 	})
 	defer td.Stop()
-
 
 	for {
 

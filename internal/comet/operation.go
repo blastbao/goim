@@ -17,16 +17,19 @@ import (
 // 告知 logic service 有人想要进入某个房间。
 func (s *Server) Connect(c context.Context, p *model.Proto, cookie string) (mid int64, key, rid string, accepts []int32, heartbeat time.Duration, err error) {
 
+
+	// 1. 把 user 信息 userID(mid)，userKey，comet_server_id 等保存到 redis 中。
 	reply, err := s.rpcClient.Connect(c, &logic.ConnectReq{
 		Server: s.serverID, // 服务 ID
-		Cookie: cookie, 	//
-		Token:  p.Body,		//
+		Cookie: cookie, 	// 默认为空 ""
+		Token:  p.Body,		// 鉴权参数，详见 benchmarks/client/main.go 中的构造 token 的方式。
 	})
 
 	if err != nil {
 		return
 	}
 
+	// 2. 返回 userID(mid), userKey, roomID, acceptOps, hbInterval 给 client 。
 	return reply.Mid, reply.Key, reply.RoomID, reply.Accepts, time.Duration(reply.Heartbeat), nil
 }
 

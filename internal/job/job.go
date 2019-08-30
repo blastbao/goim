@@ -22,10 +22,10 @@ type Job struct {
 	// 接收 Kafka 推送消息
 	consumer     *cluster.Consumer
 
-	// 线上正在运行哪些 Comet server (不同host)
+	// 线上正在运行哪些 Comet Svrs，此集合会通过 `服务发现` 来监听服务变更。
 	cometServers map[string]*Comet
 
-	// 房间信息的统一存储
+	// 因为类 Room 封装了 `单房间广播消息` 的缓存和聚合发送的逻辑，所以 rooms 就是汇总了这些 Room。
 	rooms      map[string]*Room
 
 	roomsMutex sync.RWMutex
@@ -70,7 +70,7 @@ func (j *Job) Close() error {
 }
 
 // Consume messages, watch signals
-// 【主逻辑】接收 kafka 的消息，执行消息发送。
+// 【主逻辑】接收 kafka 的消息，如果是单用户消息就发送给指定 comet，单房间广播和全局广播就发送给所有的 comet  。
 func (j *Job) Consume() {
 	for {
 		select {

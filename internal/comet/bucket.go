@@ -13,9 +13,6 @@ import (
 // 长连接具体分布在哪个 Bucket 上呢？根据 SubKey 一致性 Hash 来选择。
 
 
-
-
-
 // Bucket is a channel holder.
 
 
