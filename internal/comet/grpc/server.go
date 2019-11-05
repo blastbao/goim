@@ -14,7 +14,7 @@ import (
 	"google.golang.org/grpc/keepalive"
 )
 
-// 一个 user 会位于唯一的一个 bucket 中，而一个 room 内 user 会位于多个 bucket 中，所以两个维度的消息发送方式不同:
+// 一个 user 会位于唯一的一个 bucket 中，而一个 room 内 users 会位于多个 bucket 中，所以两个维度的消息发送方式不同:
 //
 // (1) 发送单用户消息，只需要根据 user 找到他归属的 bucket，进而在该 Bucket 中找出 user 对应的 Channel，然后直接塞进去即可。
 // (2) 发送单房间广播，只需要遍历所有的 buckets，将消息发送到 buckets 内指定房间里的每个 user 。

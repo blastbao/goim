@@ -150,8 +150,6 @@ func (b *Bucket) ChangeRoom(nrid string, ch *Channel) (err error) {
 //          |----------------------------------|
 //
 
-
-
 func (b *Bucket) Put(rid string, ch *Channel) (err error) {
 
 	var (

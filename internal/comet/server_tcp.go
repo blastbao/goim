@@ -175,13 +175,11 @@ func (s *Server) ServeTCP(conn *net.TCPConn, rp, wp *bytes.Pool, tr *xtime.Timer
 		wr      = &ch.Writer
 	)
 
-
 	// 初始化读写 I/O 对象
 	ch.Reader.ResetBuffer(conn, rb.Bytes())
 	ch.Writer.ResetBuffer(conn, wb.Bytes())
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-
 
 	// handshake
 
@@ -203,8 +201,6 @@ func (s *Server) ServeTCP(conn *net.TCPConn, rp, wp *bytes.Pool, tr *xtime.Timer
 
 		// 2. 调用 authTCP() 方法，从 conn 中读取用户鉴权信息写入到 p，然后调用 logicSvr 进行鉴权。
 		if ch.Mid, ch.Key, rid, accepts, hb, err = s.authTCP(ctx, rr, wr, p); err == nil {
-
-
 
 			// 3. 鉴权通过，保存用户登陆信息...
 			ch.Watch(accepts...)
@@ -430,7 +426,6 @@ func (s *Server) dispatchTCP(conn *net.TCPConn, wr *bufio.Writer, wp *bytes.Pool
 			finish = true
 			goto failed
 
-
 		// 有 client 发来消息
 		case grpc.ProtoReady:
 			// fetch message from svrbox(client send)
@@ -471,7 +466,6 @@ func (s *Server) dispatchTCP(conn *net.TCPConn, wr *bufio.Writer, wp *bytes.Pool
 				// 消息读取后，调用 GetAdv() 使读游标 +1
 				ch.CliProto.GetAdv()
 			}
-
 
 		default:
 
